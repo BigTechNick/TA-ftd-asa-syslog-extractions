@@ -30,8 +30,8 @@ python3 tests/regex_test.py
 
 ## Packages
 
-`packages/` will hold each version's package exactly as uploaded to Splunkbase, with `MD5SUMS`.
-Not here yet: the 1.0.0 package and the app icons (`static/`); add them from the Splunkbase package.
+`packages/` holds each version's package exactly as uploaded to Splunkbase, with `MD5SUMS`.
+Each version is also its own commit (`git log`).
 
 ## License
 
