@@ -89,7 +89,7 @@ Tested with Cisco Security Cloud 4.1.3 and Splunk Common Information Model 8.8.0
 
 | Data | Problem in Cisco Security Cloud | Fix |
 |---|---|---|
-| `cisco:ftd:syslog` action (Network_Traffic, Intrusion_Detection) | Raw FTD values: Allow, Block, Block with reset, Trust, Fastpath, InlineResult Alert / Block | Lookup to `allowed` / `blocked` |
+| `cisco:ftd:syslog` action (Network_Traffic, Intrusion_Detection) | Raw FTD values: Allow, Block, Block with reset, Trust, Fastpath, InlineResult Alert / Block; empty on file events | Lookup to `allowed` / `blocked`; file events (430004 / 430005) from `FileAction` where action is empty |
 | `cisco:ftd:syslog` src (Network_Traffic, Intrusion_Detection, Alerts) | Aliased from ReferencedHost (the HTTP Host / TLS SNI name, i.e. the destination); empty on most events | Initiator IP (`SrcIP`, `InitiatorIP`) |
 | `cisco:ftd:syslog` signature, severity (Intrusion_Detection, Alerts) | Not set; severity is aliased from EventPriority, which syslog does not carry | signature from `Message`; severity from `Priority` (1 high, 2 medium, 3 low, 4+ informational) |
 | `cisco:ftd:syslog` 430002 / 430003 | Every connection tagged `certificate` and `ssl` (Certificates), every connection end tagged `session` (Network_Sessions) | Event types switched off; connections stay in Network_Traffic |

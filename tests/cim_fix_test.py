@@ -85,6 +85,9 @@ def main():
         check(props[stanza].get("LOOKUP-ftdx_cim_action") == "ftdx_cim_action_lookup vendor_value AS action OUTPUT action",
               f"[{stanza}] action goes through the lookup")
 
+    check(ftd.get("LOOKUP-ftdx_cim_file_action") == "ftdx_cim_action_lookup vendor_value AS FileAction OUTPUTNEW action",
+          "file events: action from FileAction only where empty (OUTPUTNEW)")
+
     transforms = conf("transforms.conf")
     lk = transforms.get("ftdx_cim_action_lookup", {})
     check(lk.get("case_sensitive_match") == "false", "lookup matches without regard to case")
