@@ -5,7 +5,7 @@
     "id": {
       "group": null,
       "name": "TA-ftd-asa-syslog-extractions",
-      "version": "1.0.0"
+      "version": "1.1.0"
     },
     "author": [
       {
@@ -15,7 +15,7 @@
       }
     ],
     "releaseDate": null,
-    "description": "Search-time field extractions for Cisco Secure Firewall Threat Defense (FTD) and ASA syslog message IDs (sourcetype cisco:asa) that the Splunk Add-on for Cisco ASA and the Cisco Security Cloud app do not extract. Install alongside either add-on. Independent project, not affiliated with or endorsed by Cisco.",
+    "description": "Search-time field extractions for Cisco Secure Firewall Threat Defense (FTD) and ASA syslog message IDs (sourcetype cisco:asa) that the Splunk Add-on for Cisco ASA and the Cisco Security Cloud app do not extract, plus CIM fixes for the Cisco Security Cloud app's FTD syslog, eStreamer and ASA session data: CIM action, src, signature and severity, and over-broad event types switched off. Independent project, not affiliated with or endorsed by Cisco.",
     "classification": {
       "intendedAudience": "Security",
       "categories": [

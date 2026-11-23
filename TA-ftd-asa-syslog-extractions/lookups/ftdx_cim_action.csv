@@ -1,0 +1,41 @@
+vendor_value,action
+Allow,allowed
+Trust,allowed
+Fastpath,allowed
+Monitor,allowed
+Pending,allowed
+Would Block,allowed
+Block,blocked
+Block with reset,blocked
+Interactive Block,blocked
+Interactive Block with reset,blocked
+Partial Block,blocked
+Domain Not Found,blocked
+Sinkhole,blocked
+Alert,allowed
+Pass,allowed
+Rewrite,allowed
+Would Drop,allowed
+Would have dropped,allowed
+Would reject,allowed
+Would rewrite,allowed
+Would react,allowed
+Dropped,blocked
+Partially dropped,blocked
+Reject,blocked
+React,blocked
+Detect,allowed
+Malware Cloud Lookup,allowed
+Cloud Lookup Timeout,allowed
+Malware Block,blocked
+Malware Whitelist,allowed
+Custom Detection,allowed
+Custom Detection Block,blocked
+Archive Block (Depth Exceeded),blocked
+Archive Block (Encrypted),blocked
+Archive Block (Failed to Inspect),blocked
+TID block,blocked
+allowed,allowed
+blocked,blocked
+teardown,teardown
+unknown,unknown

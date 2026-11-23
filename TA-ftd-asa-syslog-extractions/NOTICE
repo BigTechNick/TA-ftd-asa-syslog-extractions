@@ -11,5 +11,6 @@ trademarks of their owners and are used here only to describe what the add-on
 works with.
 
 The extractions are written from Cisco's public syslog message documentation for
-Secure Firewall Threat Defense and ASA. The add-on contains no code or configuration from
-Cisco or from other Splunk add-ons.
+Secure Firewall Threat Defense and ASA. The CIM fixes name the Cisco Security Cloud app's
+event types so they can be switched off, and map Secure Firewall action values to CIM values.
+The add-on contains no code or configuration from Cisco or from other Splunk add-ons.
