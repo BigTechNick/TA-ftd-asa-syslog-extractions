@@ -13,6 +13,30 @@ APP = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 
 P = "<164>Nov 04 2026 15:01:02 fw-example-01 : "
 
 SAMPLES = [
+    ("action", P + "%FTD-1-106021: Deny ICMP reverse path check from 198.51.100.4 to 192.0.2.30 on interface vpn-1",
+     dict(action="Deny")),
+    ("action", P + "%FTD-3-313008: Denied IPv6-ICMP type=130, code=0 from fe80::1 on interface dmz-1", dict(action="Denied")),
+    ("action", P + "%FTD-6-302038: Teardown IPINIP connection 19916343 for outside:203.0.113.42/0 to inside-gold:198.51.100.53/0 "
+     "duration 0:02:01 bytes 0", dict(action="Teardown")),
+    ("106102_action", P + "%FTD-6-106102: access-list vpn-filter denied udp for user '<unknown>' outside/198.51.100.9(53) "
+     "-> inside/192.0.2.40(53) hit-cnt 3", dict(action="denied")),
+    ("302013_probe_inbound", P + "%FTD-6-302013: Built inbound Probe TCP connection 574749888 for vpn-a:192.0.2.4/14776 "
+     "(192.0.2.4/14776) to vpn-b:203.0.113.210/443 (203.0.113.210/443) -1 -1",
+     dict(action="Built", direction="inbound", ftdx_connection_type="Probe", transport="TCP", session_id="574749888",
+          src_interface="vpn-a", src_ip="192.0.2.4", src_port="14776", dest_interface="vpn-b", dest_ip="203.0.113.210",
+          dest_port="443", dest_translated_ip="203.0.113.210")),
+    ("302013_probe_outbound", P + "%FTD-6-302013: Built outbound Probe TCP connection 11 for outside:203.0.113.9/443 "
+     "(203.0.113.9/443) to inside:192.0.2.80/50000 (198.51.100.80/50000)",
+     dict(action="Built", direction="outbound", src_interface="inside", src_ip="192.0.2.80", src_port="50000",
+          src_translated_ip="198.51.100.80", dest_interface="outside", dest_ip="203.0.113.9", dest_port="443")),
+    ("302014_probe", P + "%FTD-6-302014: Teardown Probe TCP connection 1176060882 for vpn-a:192.0.2.171/26363 to "
+     "vpn-b:203.0.113.247/443 duration 0:00:00 bytes 177 Flow closed by inspection -1 -1",
+     dict(action="Teardown", ftdx_connection_type="Probe", transport="TCP", session_id="1176060882", src_ip="192.0.2.171",
+          src_port="26363", dest_ip="203.0.113.247", dest_port="443", duration_hour="0", duration_minute="00",
+          duration_second="00", bytes="177", reason="Flow closed by inspection")),
+    ("302014_probe", P + "%FTD-6-302014: Teardown Probe TCP connection 9 for vpn-a:192.0.2.171/26364 to "
+     "vpn-b:203.0.113.247/443 duration 1:02:03 bytes 5000 TCP FINs",
+     dict(duration_hour="1", duration_minute="02", duration_second="03", bytes="5000", reason="TCP FINs")),
     ("106010", P + "%FTD-3-106010: Deny inbound protocol 103 src inside:192.0.2.10 dst identity:224.0.0.13",
      dict(vendor_action="Deny", direction="inbound", protocol_number="103", src_interface="inside",
           src_ip="192.0.2.10", dest_interface="identity", dest_ip="224.0.0.13")),
@@ -187,10 +211,16 @@ SAMPLES = [
 ]
 # extractions meant to run together on the same message (199017: process name on every line, plus sudo)
 _FTX = {"19901x_process", "19901x_fprm", "199018_audit", "199018_login", "199018_cmd", "199018_logout"}
-ALLOWED_OVERLAP = {("199017_sudo", "19901x_process")} | {(a, b) for a in _FTX for b in _FTX if a != b}
+_ACTION = {"106010", "106021", "313008", "302017_inbound", "302017_outbound", "302018", "302037_inbound",
+           "302037_outbound", "302038"}
+ALLOWED_OVERLAP = {("199017_sudo", "19901x_process")} | {(a, b) for a in _FTX for b in _FTX if a != b} \
+    | {(a, "action") for a in _ACTION} | {("action", a) for a in _ACTION} \
+    | {("106102", "106102_action"), ("106102_action", "106102")}
 NEGATIVE = [                                     # lines no extraction of this app may match
     ("75xxxx_ikev2", P + "%FTD-6-751025: Local:203.0.113.1:500 Remote:198.51.100.30:500 Username:x IKEv2 Group:G "
      "IPv4 Address=192.0.2.5 assigned to Session"),
+    ("*", P + "%FTD-6-302014: Teardown TCP connection 1 for outside:203.0.113.9/1 to inside:192.0.2.80/22 "
+     "duration 0:00:05 bytes 100 TCP FINs"),
     ("*", P + "%FTD-6-302013: Built inbound TCP connection 1 for outside:203.0.113.9/1 (203.0.113.9/1) to "
      "inside:192.0.2.80/22 (192.0.2.80/22)"),
 ]

@@ -105,6 +105,12 @@ def main():
                 check(not any(o in re.findall(r"\w+", evals.get(field, "")) for o in outs),
                       f"[{stanza}] {key}: input {field} is not calculated from an output field")
 
+    asa = props.get("cisco:asa", {})
+    evals = sorted(k for k in asa if k.startswith(("EVAL-", "LOOKUP-", "FIELDALIAS-")))
+    check(evals == ["EVAL-action"], f"[cisco:asa] sets only EVAL-action besides extractions {evals}")
+    check(asa.get("EVAL-action") == 'case(message_id=="419002", "blocked", true(), action)',
+          "[cisco:asa] EVAL-action changes only 419002 and keeps every other action")
+
     transforms = conf("transforms.conf")
     lk = transforms.get("ftdx_cim_action_lookup", {})
     check(lk.get("case_sensitive_match") == "false", "lookup matches without regard to case")

@@ -1,6 +1,6 @@
 # FTD and ASA Syslog Field Extractions Add-on for Cisco Secure Firewall
 
-Version 1.1.1. App ID (folder name): `TA-ftd-asa-syslog-extractions`.
+Version 1.1.2. App ID (folder name): `TA-ftd-asa-syslog-extractions`.
 
 Search-time field extractions for Cisco Secure Firewall Threat Defense (FTD)
 and ASA syslog message IDs, sourcetype `cisco:asa`, that neither the Splunk
@@ -56,6 +56,7 @@ Nothing to configure. The extractions are exported to all apps.
 | 210005 | LU allocate failure | lu_object, transport, src_*, dest_* |
 | 210007 | LU allocate xlate failure | nat_type, transport, src_*, dest_*, src/dest_translated_ip and _port |
 | 210022 | LU missed updates | lu_missed_updates |
+| 302013 / 302014 (Probe) | FTD "Probe" TCP connection built / torn down (`Built inbound Probe TCP connection ...`), which the add-ons' 302013 / 302014 rules miss | action, direction, transport, session_id, src_* / dest_* (with translated addresses), duration, bytes, reason, ftdx_connection_type |
 | 302017 / 302018 | GRE connection built / torn down | vendor_action, direction, transport, connection_id, src_*, dest_*, gre_call_id, duration, bytes |
 | 302037 / 302038 | IP-in-IP connection built / torn down | vendor_action, direction, transport, connection_id, src_*, dest_*, duration, bytes |
 | 305006 | NAT translation creation failed | nat_type, transport, src_*, dest_*, icmp_type, icmp_code |
@@ -96,6 +97,7 @@ Tested with Cisco Security Cloud 4.1.3 and Splunk Common Information Model 8.8.0
 | `cisco:ftd:syslog` 430004 | File events tagged `endpoint` `filesystem` (Endpoint) | Event type switched off |
 | `cisco:sfw:estreamer` file events | Tagged `endpoint` `filesystem` (Endpoint); tagged `malware` `attack` `alert` when SHA_Disposition is Malware **or Unknown** (most files) | Event types switched off; `ftdx_estreamer_malware` tags only Malware verdicts and FileMalwareEvent |
 | `cisco:sfw:estreamer` action | Fastpath and other access control actions left raw | Same action lookup; CIM values such as `success` on VPN events pass through |
+| `cisco:asa` action (Network_Traffic) | Empty on the message IDs this add-on extracts (106010, 106021, 106102, 302017 / 302018, 302037 / 302038, 313008, Probe 302013 / 302014); `flow` (not a CIM value) on 419002 duplicate SYNs | The raw decision word is extracted as `action`, which Cisco's own action lookup maps to `allowed` / `blocked` / `teardown`; 419002 is `blocked` (the firewall drops the duplicate SYN) |
 | `cisco:asa` Network_Sessions | 725003 / 725007 (SSL session resume / terminated, no user) tagged as sessions | `ftdx_asa_network_sessions`: Cisco's list without those two |
 
 Event types switched off (`disabled = 1`): `cisco_syslog_ConnectionEvent_begin_connect`,
@@ -176,6 +178,14 @@ Data model summaries built before the upgrade keep the old tags until they are r
 out, so check `tstats` over a window that starts after the upgrade.
 
 ## Release notes
+
+### 1.1.2
+
+* `cisco:asa`: FTD "Probe" connections (302013 / 302014 with `Probe`), which the Cisco add-ons do
+  not parse, now have action, addresses, ports, duration and bytes.
+* `cisco:asa`: CIM action for the message IDs this add-on extracts (106010, 106021, 106102,
+  302017 / 302018, 302037 / 302038, 313008), through Cisco Security Cloud's own action lookup,
+  and `blocked` instead of `flow` for 419002 (duplicate TCP SYN).
 
 ### 1.1.1
 
