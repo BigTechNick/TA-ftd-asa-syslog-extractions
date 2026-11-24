@@ -39,8 +39,15 @@ EXPECTED = {
     "Interactive Block": "blocked", "Interactive Block with Reset": "blocked",
     "allowed": "allowed", "blocked": "blocked", "teardown": "teardown", "unknown": "unknown",
     "Would block": "allowed", "Dropped": "blocked", "Malware Block": "blocked", "Detect": "allowed",
+    "Yes": "blocked", "No": "allowed", "N/A": "unknown",
+    "success": "success", "failure": "failure", "created": "created", "modified": "modified",
 }
-CIM_ACTIONS = {"allowed", "blocked", "teardown", "unknown"}
+CIM_ACTIONS = {"allowed", "blocked", "teardown", "unknown", "success", "failure", "error", "created",
+               "deleted", "modified", "updated", "read", "acl_modified", "cleared", "deferred"}
+VENDOR_INPUTS = {
+    "cisco:ftd:syslog": "coalesce(AccessControlRuleAction, InlineResult, FileAction)",
+    "cisco:sfw:estreamer": "coalesce(InlineResult, FileAction, AC_RuleAction, blocked)",
+}
 
 FAILS = []
 
@@ -82,11 +89,21 @@ def main():
     sev = ftd.get("EVAL-severity", "")
     check(all(x in sev for x in ('"high"', '"medium"', '"low"', '"informational"')), "severity uses CIM words")
     for stanza in CISCO_EVALS:
-        check(props[stanza].get("LOOKUP-ftdx_cim_action") == "ftdx_cim_action_lookup vendor_value AS action OUTPUT action",
-              f"[{stanza}] action goes through the lookup")
-
-    check(ftd.get("LOOKUP-ftdx_cim_file_action") == "ftdx_cim_action_lookup vendor_value AS FileAction OUTPUTNEW action",
-          "file events: action from FileAction only where empty (OUTPUTNEW)")
+        check(props[stanza].get("EVAL-ftdx_vendor_action") == VENDOR_INPUTS[stanza],
+              f"[{stanza}] ftdx_vendor_action from the vendor fields")
+        check(props[stanza].get("LOOKUP-ftdx_cim_action") == "ftdx_cim_action_lookup vendor_value AS ftdx_vendor_action OUTPUT action",
+              f"[{stanza}] action goes through the lookup from ftdx_vendor_action")
+        evals = {k[5:]: v for k, v in props[stanza].items() if k.startswith("EVAL-")}
+        for key, value in props[stanza].items():
+            if not key.startswith("LOOKUP-"):
+                continue
+            m = re.match(r"\S+\s+(.*?)\s+OUTPUT(?:NEW)?\s+(.*)$", value)
+            ins = {x.split()[-1] for x in m.group(1).split(",")}
+            outs = {x.split()[-1] for x in m.group(2).split(",")}
+            check(not ins & outs, f"[{stanza}] {key}: no field is both input and output (reference cycle)")
+            for field in ins:
+                check(not any(o in re.findall(r"\w+", evals.get(field, "")) for o in outs),
+                      f"[{stanza}] {key}: input {field} is not calculated from an output field")
 
     transforms = conf("transforms.conf")
     lk = transforms.get("ftdx_cim_action_lookup", {})

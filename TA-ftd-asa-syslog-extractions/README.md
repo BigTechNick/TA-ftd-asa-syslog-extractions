@@ -1,6 +1,6 @@
 # FTD and ASA Syslog Field Extractions Add-on for Cisco Secure Firewall
 
-Version 1.1.0. App ID (folder name): `TA-ftd-asa-syslog-extractions`.
+Version 1.1.1. App ID (folder name): `TA-ftd-asa-syslog-extractions`.
 
 Search-time field extractions for Cisco Secure Firewall Threat Defense (FTD)
 and ASA syslog message IDs, sourcetype `cisco:asa`, that neither the Splunk
@@ -89,13 +89,13 @@ Tested with Cisco Security Cloud 4.1.3 and Splunk Common Information Model 8.8.0
 
 | Data | Problem in Cisco Security Cloud | Fix |
 |---|---|---|
-| `cisco:ftd:syslog` action (Network_Traffic, Intrusion_Detection) | Raw FTD values: Allow, Block, Block with reset, Trust, Fastpath, InlineResult Alert / Block; empty on file events | Lookup to `allowed` / `blocked`; file events (430004 / 430005) from `FileAction` where action is empty |
+| `cisco:ftd:syslog` action (Network_Traffic, Intrusion_Detection) | Raw FTD values: Allow, Block, Block with reset, Trust, Fastpath, InlineResult Alert / Block; empty on file events | Lookup from the vendor value (`ftdx_vendor_action`) to `allowed` / `blocked`; file events (430004 / 430005) from `FileAction` |
 | `cisco:ftd:syslog` src (Network_Traffic, Intrusion_Detection, Alerts) | Aliased from ReferencedHost (the HTTP Host / TLS SNI name, i.e. the destination); empty on most events | Initiator IP (`SrcIP`, `InitiatorIP`) |
 | `cisco:ftd:syslog` signature, severity (Intrusion_Detection, Alerts) | Not set; severity is aliased from EventPriority, which syslog does not carry | signature from `Message`; severity from `Priority` (1 high, 2 medium, 3 low, 4+ informational) |
 | `cisco:ftd:syslog` 430002 / 430003 | Every connection tagged `certificate` and `ssl` (Certificates), every connection end tagged `session` (Network_Sessions) | Event types switched off; connections stay in Network_Traffic |
 | `cisco:ftd:syslog` 430004 | File events tagged `endpoint` `filesystem` (Endpoint) | Event type switched off |
 | `cisco:sfw:estreamer` file events | Tagged `endpoint` `filesystem` (Endpoint); tagged `malware` `attack` `alert` when SHA_Disposition is Malware **or Unknown** (most files) | Event types switched off; `ftdx_estreamer_malware` tags only Malware verdicts and FileMalwareEvent |
-| `cisco:sfw:estreamer` action | Fastpath and other access control actions left raw | Same action lookup |
+| `cisco:sfw:estreamer` action | Fastpath and other access control actions left raw | Same action lookup; CIM values such as `success` on VPN events pass through |
 | `cisco:asa` Network_Sessions | 725003 / 725007 (SSL session resume / terminated, no user) tagged as sessions | `ftdx_asa_network_sessions`: Cisco's list without those two |
 
 Event types switched off (`disabled = 1`): `cisco_syslog_ConnectionEvent_begin_connect`,
@@ -113,8 +113,9 @@ Side effects to know about:
 
 * Cisco's own `Cisco_Security` data model still finds these events by `EventType`; only a
   label in it that names `cisco_asa_network_sessions` no longer applies to the sessions.
-* An action value the lookup does not list becomes empty (CIM `unknown`); the vendor value is
-  still in `AccessControlRuleAction`, `InlineResult` or `AC_RuleAction`.
+* The vendor value the action lookup reads is in `ftdx_vendor_action`. A vendor value the
+  lookup does not list leaves `action` empty (CIM `unknown`); events with no vendor value keep
+  Cisco's `action`.
 * `Monitor` maps to `allowed` (the rule logs and lets the connection continue).
 
 After upgrading Cisco Security Cloud, check that the event types are still switched off and that
@@ -122,7 +123,7 @@ nothing else sets the fields:
 
 ```
 splunk btool eventtypes list --debug | grep -B1 "disabled = 1"
-splunk btool props list cisco:ftd:syslog --debug | grep -E "EVAL-(src|severity)|LOOKUP-ftdx|FIELDALIAS-ftdx"
+splunk btool props list cisco:ftd:syslog --debug | grep -E "EVAL-(src|severity|ftdx_vendor_action)|LOOKUP-ftdx|FIELDALIAS-ftdx"
 ```
 
 ## Not covered on purpose
@@ -175,6 +176,14 @@ Data model summaries built before the upgrade keep the old tags until they are r
 out, so check `tstats` over a window that starts after the upgrade.
 
 ## Release notes
+
+### 1.1.1
+
+* The action lookup reads the vendor value from a new field, `ftdx_vendor_action`, instead of
+  `action`. 1.1.0 read and wrote `action`, which Splunk reports as a lookup reference cycle
+  ("Cannot expand lookup field 'action'") on searches that filter on `action`.
+* CIM action values (`success`, `failure`, `created` ...) now pass through the lookup. 1.1.0
+  emptied them, for example `success` on eStreamer VPN login events.
 
 ### 1.1.0
 

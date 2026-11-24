@@ -39,3 +39,17 @@ allowed,allowed
 blocked,blocked
 teardown,teardown
 unknown,unknown
+N/A,unknown
+Yes,blocked
+No,allowed
+success,success
+failure,failure
+error,error
+created,created
+deleted,deleted
+modified,modified
+updated,updated
+read,read
+acl_modified,acl_modified
+cleared,cleared
+deferred,deferred
