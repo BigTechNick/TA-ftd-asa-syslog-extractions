@@ -72,7 +72,7 @@ SAMPLES = [
      dict(direction="outbound", dest_ip="203.0.113.9", src_ip="192.0.2.80", gre_call_id="7")),
     ("302018", P + "%FTD-6-302018: Teardown GRE connection 12345 from outside:203.0.113.9 to inside:192.0.2.80/0 "
      "duration 0:02:01 bytes 0",
-     dict(vendor_action="Teardown", connection_id="12345", duration="0:02:01", bytes="0")),
+     dict(vendor_action="Teardown", connection_id="12345", duration_hour="0", duration_minute="02", duration_second="01", bytes="0")),
     ("305006", P + "%FTD-3-305006: regular translation creation failed for icmp src guest:192.0.2.90 dst "
      "outside:203.0.113.10 (type 3, code 3)",
      dict(nat_type="regular", transport="icmp", src_ip="192.0.2.90", dest_ip="203.0.113.10", icmp_type="3",
@@ -157,7 +157,7 @@ SAMPLES = [
      dict(direction="outbound", dest_ip="203.0.113.42", src_ip="198.51.100.53")),
     ("302038", P + "%FTD-6-302038: Teardown IPINIP connection 19916343 for outside:203.0.113.42/0 to inside-gold:198.51.100.53/0 duration 0:02:01 bytes 0",
      dict(vendor_action="Teardown", transport="IPINIP", connection_id="19916343", src_ip="203.0.113.42", dest_ip="198.51.100.53",
-          duration="0:02:01", bytes="0")),
+          duration_hour="0", duration_minute="02", duration_second="01", bytes="0")),
     ("508001", P + "%FTD-5-508001: DCERPC unknown non-standard major version 36 from vpn-a:198.51.100.54/58490 to vpn-b:192.0.2.75/135, terminating connection.",
      dict(reason="unknown non-standard major version", dcerpc_version="36", src_interface="vpn-a", src_ip="198.51.100.54",
           src_port="58490", dest_ip="192.0.2.75", dest_port="135")),

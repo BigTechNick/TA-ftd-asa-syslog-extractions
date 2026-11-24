@@ -186,6 +186,8 @@ out, so check `tstats` over a window that starts after the upgrade.
 * `cisco:asa`: CIM action for the message IDs this add-on extracts (106010, 106021, 106102,
   302017 / 302018, 302037 / 302038, 313008), through Cisco Security Cloud's own action lookup,
   and `blocked` instead of `flow` for 419002 (duplicate TCP SYN).
+* `cisco:asa`: GRE and IP-in-IP teardowns (302018, 302038) now give the duration as hours,
+  minutes and seconds, so Cisco Security Cloud's duration (in seconds) is set; before, it was empty.
 
 ### 1.1.1
 
