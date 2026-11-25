@@ -1,6 +1,6 @@
 # FTD and ASA Syslog Field Extractions Add-on for Cisco Secure Firewall
 
-Splunk add-on `TA-ftd-asa-syslog-extractions`, version 1.1.2.
+Splunk add-on `TA-ftd-asa-syslog-extractions`, version 1.1.3.
 
 Search-time field extractions for Cisco Secure Firewall Threat Defense (FTD) and ASA syslog message IDs (sourcetype cisco:asa) that the Splunk Add-on for Cisco ASA and the Cisco Security Cloud app do not extract: VPN, IKEv2, WebVPN, UAUTH, GRE, NAT, routing, DNS, SIP and DCERPC inspection, FTD Linux and sudo messages. Install alongside either add-on. Not affiliated with Cisco.
 

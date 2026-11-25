@@ -1,6 +1,6 @@
 # FTD and ASA Syslog Field Extractions Add-on for Cisco Secure Firewall
 
-Version 1.1.2. App ID (folder name): `TA-ftd-asa-syslog-extractions`.
+Version 1.1.3. App ID (folder name): `TA-ftd-asa-syslog-extractions`.
 
 Search-time field extractions for Cisco Secure Firewall Threat Defense (FTD)
 and ASA syslog message IDs, sourcetype `cisco:asa`, that neither the Splunk
@@ -57,6 +57,7 @@ Nothing to configure. The extractions are exported to all apps.
 | 210007 | LU allocate xlate failure | nat_type, transport, src_*, dest_*, src/dest_translated_ip and _port |
 | 210022 | LU missed updates | lu_missed_updates |
 | 302013 / 302014 (Probe) | FTD "Probe" TCP connection built / torn down (`Built inbound Probe TCP connection ...`), which the add-ons' 302013 / 302014 rules miss | action, direction, transport, session_id, src_* / dest_* (with translated addresses), duration, bytes, reason, ftdx_connection_type |
+| 302014 / 302016 (user with . or @) | TCP / UDP teardown whose destination user has a dot or an @ (remote access VPN users such as `LOCAL\jane.doe@example.com`), which Cisco Security Cloud's 302014 / 302016 rule does not parse | action, transport, session_id, src_* / dest_*, src_nt_domain, src_user, dest_nt_domain, dest_user, duration, bytes, reason |
 | 302017 / 302018 | GRE connection built / torn down | vendor_action, direction, transport, connection_id, src_*, dest_*, gre_call_id, duration, bytes |
 | 302037 / 302038 | IP-in-IP connection built / torn down | vendor_action, direction, transport, connection_id, src_*, dest_*, duration, bytes |
 | 305006 | NAT translation creation failed | nat_type, transport, src_*, dest_*, icmp_type, icmp_code |
@@ -97,7 +98,7 @@ Tested with Cisco Security Cloud 4.1.3 and Splunk Common Information Model 8.8.0
 | `cisco:ftd:syslog` 430004 | File events tagged `endpoint` `filesystem` (Endpoint) | Event type switched off |
 | `cisco:sfw:estreamer` file events | Tagged `endpoint` `filesystem` (Endpoint); tagged `malware` `attack` `alert` when SHA_Disposition is Malware **or Unknown** (most files) | Event types switched off; `ftdx_estreamer_malware` tags only Malware verdicts and FileMalwareEvent |
 | `cisco:sfw:estreamer` action | Fastpath and other access control actions left raw | Same action lookup; CIM values such as `success` on VPN events pass through |
-| `cisco:asa` action (Network_Traffic) | Empty on the message IDs this add-on extracts (106010, 106021, 106102, 302017 / 302018, 302037 / 302038, 313008, Probe 302013 / 302014); `flow` (not a CIM value) on 419002 duplicate SYNs | The raw decision word is extracted as `action`, which Cisco's own action lookup maps to `allowed` / `blocked` / `teardown`; 419002 is `blocked` (the firewall drops the duplicate SYN) |
+| `cisco:asa` action (Network_Traffic) | Empty on the message IDs this add-on extracts (106010, 106021, 106102, 302017 / 302018, 302037 / 302038, 313008, Probe 302013 / 302014, 302014 / 302016 with a dotted or @ destination user); `flow` (not a CIM value) on 419002 duplicate SYNs | The raw decision word is extracted as `action`, which Cisco's own action lookup maps to `allowed` / `blocked` / `teardown`; 419002 is `blocked` (the firewall drops the duplicate SYN) |
 | `cisco:asa` Network_Sessions | 725003 / 725007 (SSL session resume / terminated, no user) tagged as sessions | `ftdx_asa_network_sessions`: Cisco's list without those two |
 
 Event types switched off (`disabled = 1`): `cisco_syslog_ConnectionEvent_begin_connect`,
@@ -119,6 +120,14 @@ Side effects to know about:
   lookup does not list leaves `action` empty (CIM `unknown`); events with no vendor value keep
   Cisco's `action`.
 * `Monitor` maps to `allowed` (the rule logs and lets the connection continue).
+* Searches that use `tag=` (not data model searches) can show "The event type '...' does not
+  exist or is deactivated" for the switched-off event types, because Cisco's tags.conf still
+  names them. The message is cosmetic: results and data models are not affected.
+* Splunk Cloud (and other search head clusters that update apps with "preserve lookups") keeps
+  an app's existing lookup files when the app is upgraded. A release that changes the action
+  table therefore ships it under a new file name (1.1.3: `ftdx_cim_action_v2.csv`); the old
+  file may stay in the app folder, unused. Check the table after an upgrade with
+  `| inputlookup ftdx_cim_action_lookup | stats count` (1.1.3: 54 rows).
 
 After upgrading Cisco Security Cloud, check that the event types are still switched off and that
 nothing else sets the fields:
@@ -178,6 +187,16 @@ Data model summaries built before the upgrade keep the old tags until they are r
 out, so check `tstats` over a window that starts after the upgrade.
 
 ## Release notes
+
+### 1.1.3
+
+* `cisco:asa`: TCP / UDP teardowns (302014 / 302016) whose destination user has a dot or an @,
+  typical of remote access VPN users, now have action, addresses, ports, users, duration and
+  bytes. Cisco Security Cloud's 302014 / 302016 rule does not parse these lines at all.
+* The action table is now `ftdx_cim_action_v2.csv` (same 54 rows as 1.1.2). Splunk Cloud keeps
+  an app's existing lookup files on upgrade, so stacks upgraded from 1.1.0 kept the 1.1.0 table,
+  without the pass-through rows (`success` on eStreamer VPN logins stayed empty). The new file
+  name makes the upgrade install the current table.
 
 ### 1.1.2
 

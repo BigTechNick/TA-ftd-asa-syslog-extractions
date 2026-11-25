@@ -37,6 +37,19 @@ SAMPLES = [
     ("302014_probe", P + "%FTD-6-302014: Teardown Probe TCP connection 9 for vpn-a:192.0.2.171/26364 to "
      "vpn-b:203.0.113.247/443 duration 1:02:03 bytes 5000 TCP FINs",
      dict(duration_hour="1", duration_minute="02", duration_second="03", bytes="5000", reason="TCP FINs")),
+    ("30201x_dest_user", P + "%FTD-6-302014: Teardown TCP connection 1509354735 for vpn-inside:192.0.2.13/0 to "
+     "vpn-outside:198.51.100.230/61153(LOCAL\\jane.doe@example.com) duration 0:00:32 bytes 0 Parent flow is closed 0 0",
+     dict(action="Teardown", transport="TCP", session_id="1509354735", src_interface="vpn-inside", src_ip="192.0.2.13",
+          src_port="0", src_user=None, dest_interface="vpn-outside", dest_ip="198.51.100.230", dest_port="61153",
+          dest_nt_domain="LOCAL", dest_user="jane.doe@example.com", duration_hour="0", duration_minute="00",
+          duration_second="32", bytes="0", reason="Parent flow is closed")),
+    ("30201x_dest_user", P + "%FTD-6-302016: Teardown UDP connection 77 for outside:203.0.113.9/53 to "
+     "vpn-outside:198.51.100.7/5353(jane.doe) duration 0:02:00 bytes 512",
+     dict(action="Teardown", transport="UDP", dest_nt_domain=None, dest_user="jane.doe", bytes="512", reason=None)),
+    ("30201x_dest_user", P + "%ASA-6-302014: Teardown TCP connection 9 for inside:192.0.2.20/443(EXAMPLE\\svc_web) to "
+     "vpn:198.51.100.8/50000(EXAMPLE\\john.smith@example.com) duration 1d2h:03m:04s bytes 99 TCP FINs from inside",
+     dict(src_nt_domain="EXAMPLE", src_user="svc_web", dest_user="john.smith@example.com", duration_day="1",
+          duration_hour="2", duration_minute="03", duration_second="04", reason="TCP FINs from inside")),
     ("106010", P + "%FTD-3-106010: Deny inbound protocol 103 src inside:192.0.2.10 dst identity:224.0.0.13",
      dict(vendor_action="Deny", direction="inbound", protocol_number="103", src_interface="inside",
           src_ip="192.0.2.10", dest_interface="identity", dest_ip="224.0.0.13")),
@@ -221,6 +234,10 @@ NEGATIVE = [                                     # lines no extraction of this a
      "IPv4 Address=192.0.2.5 assigned to Session"),
     ("*", P + "%FTD-6-302014: Teardown TCP connection 1 for outside:203.0.113.9/1 to inside:192.0.2.80/22 "
      "duration 0:00:05 bytes 100 TCP FINs"),
+    ("*", P + "%FTD-6-302014: Teardown TCP connection 2 for vpn-inside:192.0.2.13/0 to vpn-outside:198.51.100.230/61153"
+     "(LOCAL\\jdoe) duration 0:00:32 bytes 0 Parent flow is closed 0 0"),      # Cisco's rule parses this one
+    ("*", P + "%FTD-6-302014: Teardown TCP connection 3 for inside:192.0.2.20/443(EXAMPLE\\jane.doe@example.com) to "
+     "outside:203.0.113.9/50000 duration 0:00:05 bytes 100 TCP FINs"),                  # dotted user on the source side only
     ("*", P + "%FTD-6-302013: Built inbound TCP connection 1 for outside:203.0.113.9/1 (203.0.113.9/1) to "
      "inside:192.0.2.80/22 (192.0.2.80/22)"),
 ]
